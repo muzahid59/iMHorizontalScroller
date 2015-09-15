@@ -14,6 +14,10 @@
 @interface iMScroller : UIView
 
 @property (nonatomic, weak) id<iMHozontalScrollerDelegate> delegate;
+@property (assign) NSUInteger cellPadding;
+@property (assign) NSUInteger cellOffest;
+@property (assign) NSUInteger cellWidth;
+@property (assign) NSUInteger cellHeight;
 
 -(void)reload;
 @end
@@ -23,7 +27,7 @@
 @required
 -(NSUInteger)numberOfCellForTheiMScroller:(iMScroller *)iMScroller;
 -(UIView *)iMScroller:(iMScroller *)iMScroller viewAtIndex:(NSUInteger)index;
-
 @optional
-
+-(void)iMscroller:(iMScroller *)iMScroller didSelectAtIndex:(NSUInteger)index;
+-(NSUInteger)intialViewIndex:(iMScroller *)iMScroller;
 @end

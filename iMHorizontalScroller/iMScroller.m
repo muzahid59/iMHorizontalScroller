@@ -8,36 +8,58 @@
 
 #import "iMScroller.h"
 
-#define CELL_PADDING 10
-#define CELL_OFFSET 100
-#define CELL_DIMENSION 100
+
 
 @interface iMScroller ()<UIScrollViewDelegate>{
     UIScrollView *scroller;
+   // NSUInteger cellDimension;
 }
 
 @end
 
 @implementation iMScroller
+@synthesize cellPadding = _cellPadding;
+@synthesize cellOffest = _cellOffest;
+//@synthesize cellDimension = _cellDimension;
+@synthesize cellHeight = _cellHeight;
+@synthesize cellWidth = _cellWidth;
+@synthesize delegate = _delegate;
 
 -(id)initWithFrame:(CGRect)frame{
     self = [super initWithFrame:frame];
     
     if (self) {
+        [self defaulSettings];
         scroller = [[UIScrollView alloc]initWithFrame:self.bounds];
         scroller.delegate = self;
         [self addSubview:scroller];
         UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapOnCell:)];
         [scroller addGestureRecognizer:tap];
-
+        
     }
     
     return self;
 }
 
+#pragma mark- Default Settings
+-(void)defaulSettings{
+    self.cellPadding = 10;
+    self.cellWidth = 100;
+    self.cellHeight = 100;
+    self.cellOffest = self.cellWidth;
+   
+}
 
 -(void)tapOnCell:(UIGestureRecognizer *)tapGesture{
-    
+    CGPoint location = [tapGesture locationInView:tapGesture.view];
+    for (int i = 0; i<[_delegate numberOfCellForTheiMScroller:self]; i++) {
+        UIView *view = [[scroller subviews]objectAtIndex:i];
+        if (CGRectContainsPoint(view.frame, location)) {
+            [_delegate iMscroller:self didSelectAtIndex:i];
+            [scroller setContentOffset:CGPointMake(view.frame.origin.x - self.frame.size.width/2 + view.frame.size.width/2, 0) animated:YES];
+            break;
+        }
+    }
 }
 
 -(void)reload{
@@ -50,19 +72,40 @@
         [obj removeFromSuperview];
     }];
     
-    CGFloat xPos = CELL_OFFSET;
+    CGFloat xPos = _cellOffest;
     
     for (int index = 0; index< [self.delegate numberOfCellForTheiMScroller:self]; index ++) {
-        xPos = xPos + CELL_PADDING;
+        xPos = xPos + _cellPadding;
         UIView *view = [self.delegate iMScroller:self viewAtIndex:index];
-        view.frame = CGRectMake(xPos, CELL_PADDING, CELL_DIMENSION, CELL_DIMENSION);
+        view.frame = CGRectMake(xPos, _cellPadding, _cellWidth , _cellHeight);
         [scroller addSubview:view];
-        xPos = xPos + CELL_DIMENSION + CELL_PADDING;
+        xPos = xPos + _cellWidth + _cellPadding;
     }
     
-    xPos = xPos + CELL_OFFSET;
+    xPos = xPos + _cellOffest;
     
     [scroller setContentSize:CGSizeMake(xPos, self.frame.size.height)];
+    
+    //intial center view
+    if ([_delegate respondsToSelector:@selector(intialViewIndex:)]) {
+        NSUInteger index = [_delegate intialViewIndex:self];
+        [scroller setContentOffset:CGPointMake(index*(_cellWidth+(2*_cellPadding)), 0)];
+    }
+}
+
+-(void)viewGoesToCentreAfterEndScrolling{
+    NSUInteger xFinal = scroller.contentOffset.x + (_cellOffest/2) + _cellPadding;
+    NSUInteger viewIndex = xFinal / (_cellWidth+(2*_cellPadding));
+    UIView *view = [[scroller subviews]objectAtIndex:viewIndex];
+    [scroller setContentOffset:CGPointMake(view.frame.origin.x - self.frame.size.width/2 + view.frame.size.width/2, 0) animated:YES];
+}
+
+
+#pragma mark - UISCrollView Delegate
+-(void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate{
+    if (!decelerate) {
+        [self viewGoesToCentreAfterEndScrolling];
+    }
 }
 
 /*
