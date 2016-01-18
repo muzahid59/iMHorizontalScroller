@@ -33,6 +33,8 @@
 }
 
 
+
+#pragma mark- iMScroller Delegate
 -(NSUInteger)numberOfCellForTheiMScroller:(iMScroller *)iMScroller{
     return 10;
 }
